@@ -6,6 +6,8 @@
 # add an option to add snp file for index building
 # the option for p in hisat2 correspond to the number of
 # core to use (more = faster)
+# It will be better if i put a conditional here allowing to do both
+# relative or absolute path to $1 $2
 
 #Definition of the options
 #: means an option is required
@@ -123,18 +125,19 @@ do
 done
 
 
-# Production of the index file
-
-
 # Creation of the output folder
 mkdir ./built_index
 mkdir ./aligmnent_res
 
-# It will be better if i put a conditional here allowing to do both
-# relative or absolute path to $1 $2
+# Production of the index file
+if [ -n "$argPaired" ]; then
+  hisat2-build --snp ./$argSnps ./$argIndex ./built_index/refer
+elif
+  hisat2-build ./$argIndex ./built_index/refer
+fi
 
-hisat2-build --snp ./$2 ./$1 ./built_index/refer
 
-hisat2 -p $4 -x ./built_index/refer -U ./$3 -S ./aligmnent_res/aligmnent.sam
+# Alignement of the file
+hisat2 -p $argCore -x ./built_index/refer -U ./$argFastq -S ./aligmnent_res/aligmnent.sam
 
 samtools view -bS aligmnent.sam > alignement.bam
