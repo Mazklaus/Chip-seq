@@ -117,4 +117,5 @@ fi
 # Alignement of the file
 hisat2 -p $argCore -x ./built_index/refer -U ./$argFastq -S ./aligmnent_res/aligmnent.sam
 
+# turn sam file into bam one (binaries) which are much more faster in compute
 samtools view -bS aligmnent.sam > alignement.bam
