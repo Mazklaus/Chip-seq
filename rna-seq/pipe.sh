@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+/#!/usr/bin/env bash
 
 # This a aligmnent test pipeline in order to manage RNA-seq data
 # This script need to be adapt for both single and pair-end
@@ -9,6 +9,7 @@
 # It will be better if i put a conditional here allowing to do both
 # relative or absolute path to $1 $2
 # add an option to allow users to get a fastqc output giving a quality control view
+# need to add the possibility to choose the output directory
 
 #Definition of the options
 #: means an option is required
@@ -21,6 +22,7 @@ argFastq=""
 argPaired=""
 argSnps=""
 argCore=1
+argQualityControl=0
 
 # function for help
 usage() {
@@ -77,7 +79,7 @@ do
 				  shift 2 ;;
 				*)
           if [ -e $2 ]; then
-            argPaired=$2
+            argSnps=$2
           else
             echo "The snps file you want to use does not exist !";
             exit 1;
@@ -93,7 +95,7 @@ do
     				if ! [[ $2 =~ $re ]] ; then
     					echo "error: $2 is not a number" >&2; exit 1
     				fi;
-    				argRandom=$2
+    				argCore=$2
     				shift 2;;
         esac ;;
 		--) shift ; break ;;
@@ -105,17 +107,22 @@ done
 # Creation of the output folder
 mkdir ./built_index
 mkdir ./aligmnent_res
+mkdir ./quality_control
 
 # Production of the index file
 if [ -n "$argPaired" ]; then
-  hisat2-build --snp ./$argSnps ./$argIndex ./built_index/refer
+  hisat2-build -p $argCore --snp ./$argSnps ./$1 ./built_index/refer
 else
-  hisat2-build ./$argIndex ./built_index/refer
+  hisat2-build -p $argCore ./$1 ./built_index/refer
 fi
 
-
 # Alignement of the file
-hisat2 -p $argCore -x ./built_index/refer -U ./$argFastq -S ./aligmnent_res/aligmnent.sam
+hisat2 -p $argCore -x ./built_index/refer -U ./$2 -S ./aligmnent_res/aligmnent.sam
 
 # turn sam file into bam one (binaries) which are much more faster in compute
-samtools view -bS aligmnent.sam > alignement.bam
+samtools view -bS ./aligmnent_res/aligmnent.sam > ./aligmnent_res/alignment.bam
+
+# Fastqc creation of output
+if [ $argQualityControl = 1 ]; then
+	fastqc -o ./quality_control ./aligmnent_res/alignment.bam
+fi
