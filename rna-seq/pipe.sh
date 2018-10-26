@@ -11,7 +11,7 @@
 
 #Definition of the options
 #: means an option is required
-TEMP=`getopt -o hqp:s:c: --long help,quality,paired,snps,core -n 'pipe.sh' -- "$@"`
+TEMP=`getopt -o hqo:p:s:c: --long help,quality,output,paired,snps,core -n 'pipe.sh' -- "$@"`
 eval set -- "$TEMP"
 
 #Initialise the flags that will be modified by the different options.
@@ -19,6 +19,7 @@ argIndex=""
 argFastq=""
 argPaired=""
 argSnps=""
+argOutput="./"
 argCore=1
 argQualityControl=0
 
@@ -37,6 +38,7 @@ usage() {
 	echo -e "\e[1mOPTION\e[0m\n"
 	echo -e "\t\e[1m-h|--help\e[0m\t\t\tPrint the help.\n"
 	echo -e "\t\e[1m-q|--quality\e[0m\t\t\tGive a html quality summary using fastqc.\n"
+	echo -e "\t\e[1m-o|--output [DIRECTORY]\e[0m\t\tThe output folder where you want to place result.\n\t\t\t\t\tIf it does not exist it will be create (be carefull).\n"
 	echo -e "\t\e[1m-p|--paired [.fastq FILE]\e[0m\tUsed this argument with the paired file if you have pair-end\n\t\t\t\t\tdata (without it asume that you are managing single end data).\n"
 	echo -e "\t\e[1m-s|--snps [.fa FILE]\e[0m\t\tGive a file adding snps information to the index.\n"
 	echo -e "\t\e[1m-c/--core [INTEGER]\e[0m\t\tNumber of CPU core used for alignement.\n\t\t\t\t\t\e[31m/!\ \e[0m A high number can improve speed but can also reduce\n\t\t\t\t\toverall computer speed during the computing time.\n"
@@ -53,7 +55,6 @@ fi
 
 
 # Parsing input parameters
-
 #According to the inputed options, flags are set to 1 (or the value of the option) to apply only the wanted transformations of data
 while true ;
 do
@@ -62,6 +63,14 @@ do
 			usage ; shift ;;
 		-q|quality)
 			argQualityControl=1 ; shift ;;
+		-o|output)
+			case "$2" in
+				"")
+					shift 2 ;;
+				*)
+					argOutput=$2
+					shift 2 ;;
+			esac ;;
 		-p|paired)
 			case "$2" in
 				"")
@@ -107,37 +116,41 @@ done
 
 
 # Creation of the output folder
-mkdir ./built_index
-mkdir ./aligmnent_res
+if [ ! "$argOutput" = "./" ]; then
+	mkdir $argOutput
+	argOutput="${argOutput}/"
+fi
+mkdir ${argOutput}built_index
+mkdir ${argOutput}aligmnent_res
 if [ $argQualityControl = 1 ];then
-	mkdir ./quality_control
+	mkdir ${argOutput}quality_control
 fi
 
 # Production of the index file
-if [ -n "$argPaired" ]; then
+if [ ! -n "$argPaired" ]; then
 	if [ -n "$argSnps" ]; then
-	  hisat2-build -p $argCore --snp ./$argSnps ./$1 ./built_index/refer
+	  hisat2-build -p $argCore --snp ./$argSnps ./$1 ${argOutput}built_index/refer
 	else
-	  hisat2-build -p $argCore ./$1 ./built_index/refer
+	  hisat2-build -p $argCore ./$1 ${argOutput}built_index/refer
 	fi
 else
 	if [ -n "$argSnps" ]; then
-		hisat2-build -p $argCore --snp ./$argSnps -1 ./$1 -2 $argSnps ./built_index/refer
+		hisat2-build -p $argCore --snp ./$argSnps -1 ./$1 -2 $argSnps ${argOutput}built_index/refer
 	else
-		hisat2-build -p $argCore -1 ./$1 -2 $argSnps ./built_index/refer
+		hisat2-build -p $argCore -1 ./$1 -2 $argSnps ${argOutput}built_index/refer
 	fi
 fi
 # Alignement of the file
-hisat2 -p $argCore -x ./built_index/refer -U ./$2 -S ./aligmnent_res/aligmnent.sam
+hisat2 -p $argCore -x ${argOutput}built_index/refer -U ./$2 -S ${argOutput}aligmnent_res/aligmnent.sam
 
 # turn sam file into bam one (binaries) which are much more faster in compute
-samtools view -bS ./aligmnent_res/aligmnent.sam > ./aligmnent_res/alignment.bam
+samtools view -bS ${argOutput}aligmnent_res/aligmnent.sam > ${argOutput}aligmnent_res/alignment.bam
 
 # Fastqc creation of output
 if [ $argQualityControl = 1 ]; then
-	fastqc -o ./quality_control ./aligmnent_res/alignment.bam
+	fastqc -o ${argOutput}quality_control ${argOutput}aligmnent_res/alignment.bam
 fi
 
 # Generation of the count table
 # the -s parameters must be put on yes if the alignement is strand specific
-htseq-count -f bam -r pos -s no ./aligmnent_res/alignment.bam $3 > ./aligmnent_res/samples.counts
+htseq-count -f bam -r pos -s no ${argOutput}aligmnent_res/alignment.bam $3 > ${argOutput}aligmnent_res/samples.counts
