@@ -2,12 +2,8 @@
 
 # This a aligmnent test pipeline in order to manage RNA-seq data
 # This script need to be adapt for both single and pair-end
-# it will need to let the people choose
-# add an option to add snp file for index building
 # It will be better if i put a conditional here allowing to do both
 # relative or absolute path to $1 $2
-# need to add the possibility to choose the output directory
-# Propose to take
 
 #Definition of the options
 #: means an option is required
