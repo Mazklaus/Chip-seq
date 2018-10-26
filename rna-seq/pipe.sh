@@ -7,6 +7,7 @@
 # It will be better if i put a conditional here allowing to do both
 # relative or absolute path to $1 $2
 # need to add the possibility to choose the output directory
+# Propose to take
 
 #Definition of the options
 #: means an option is required
@@ -53,7 +54,7 @@ fi
 
 # Parsing input parameters
 
-#According to the inputted options, flags are set to 1 (or the value of the option) to apply only the wanted transformations of data
+#According to the inputed options, flags are set to 1 (or the value of the option) to apply only the wanted transformations of data
 while true ;
 do
 	case "$1" in
