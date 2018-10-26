@@ -11,7 +11,7 @@
 
 #Definition of the options
 #: means an option is required
-TEMP=`getopt -o hqo:p:s:c: --long help,quality,output,paired,snps,core -n 'pipe.sh' -- "$@"`
+TEMP=`getopt -o hqdo:p:s:c: --long help,quality,strand-specific,output,paired,snps,core -n 'pipe.sh' -- "$@"`
 eval set -- "$TEMP"
 
 #Initialise the flags that will be modified by the different options.
@@ -22,6 +22,7 @@ argSnps=""
 argOutput="./"
 argCore=1
 argQualityControl=0
+argStrandSpecific=0
 
 # function for help
 usage() {
@@ -38,6 +39,7 @@ usage() {
 	echo -e "\e[1mOPTION\e[0m\n"
 	echo -e "\t\e[1m-h|--help\e[0m\t\t\tPrint the help.\n"
 	echo -e "\t\e[1m-q|--quality\e[0m\t\t\tGive a html quality summary using fastqc.\n"
+	echo -e "\t\e[1m-d|--strand-specific\e[0m\t\tUse this argument if your RNA-seq experiment is\n\t\t\t\t\tstrand specific.\n"
 	echo -e "\t\e[1m-o|--output [DIRECTORY]\e[0m\t\tThe output folder where you want to place result.\n\t\t\t\t\tIf it does not exist it will be create (be carefull).\n"
 	echo -e "\t\e[1m-p|--paired [.fastq FILE]\e[0m\tUsed this argument with the paired file if you have pair-end\n\t\t\t\t\tdata (without it asume that you are managing single end data).\n"
 	echo -e "\t\e[1m-s|--snps [.fa FILE]\e[0m\t\tGive a file adding snps information to the index.\n"
@@ -63,6 +65,8 @@ do
 			usage ; shift ;;
 		-q|quality)
 			argQualityControl=1 ; shift ;;
+		-d|strand-specific)
+			argStrandSpecific=1 ; shift ;;
 		-o|output)
 			case "$2" in
 				"")
@@ -152,5 +156,8 @@ if [ $argQualityControl = 1 ]; then
 fi
 
 # Generation of the count table
-# the -s parameters must be put on yes if the alignement is strand specific
-htseq-count -f bam -r pos -s no ${argOutput}aligmnent_res/alignment.bam $3 > ${argOutput}aligmnent_res/samples.counts
+if [ $argStrandSpecific = 1 ]; then
+	htseq-count -f bam -r pos -s yes ${argOutput}aligmnent_res/alignment.bam $3 > ${argOutput}aligmnent_res/samples.counts
+else
+	htseq-count -f bam -r pos -s no ${argOutput}aligmnent_res/alignment.bam $3 > ${argOutput}aligmnent_res/samples.counts
+fi
