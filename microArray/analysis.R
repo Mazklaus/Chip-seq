@@ -35,7 +35,8 @@ name <- strsplit(sampleNames(data),"_")
 name <- as.data.frame(t(data.frame(name))[,1])
 sampleNames(data) <- name[,1]
 
-
+trts <- factor(paste(sampleSheet$status,sampleSheet$treatment,sep="_"))
+blocks <- factor(sampleSheet$patientID) 
 ##### Quality control #####
 
 data.expr <- exprs(data)
@@ -49,20 +50,35 @@ data.rma <- rma(data)
 
 ##Computing
 # Create a design matrix for treatments effects
-design.trt <- model.matrix(~0+sampleSheet$treatment)
+design.trt <- model.matrix(~0+trts)
 
 # Compute blocks for each genes (block = patients)
-corfit <- duplicateCorrelation(data.rma,design.trt,block = sampleSheet$patientID)
+corfit <- duplicateCorrelation(data.rma,design.trt,block = blocks)
 
 # correlation histogram
 hist(tanh(corfit$atanh.correlations))
 
 #Compute the pooled sample variance and the sample mean by genes
-fitTrtMean <- lmFit(data.rma, design.trt, block = sampleSheet$patientID, correlation = corfit$consensus.correlation)
+fitTrtMean <- lmFit(data.rma, design.trt, block = blocks, correlation = corfit$consensus.correlation)
 
 ##Create the coefficient matrix for the contrast
 colnames(design.trt) <- c("trtDrug","trtPlacebo")
-contrast.matrix = makeContrasts(trtDrug - trtPlacebo,levels = design.trt)
+contrast.matrix = makeContrasts(trtsLS_Drug - trtsLS_Placebo,trtsNL_Drug-trtsNL_Placebo,levels = design.trt)
 
 ## Estimates the constrast
 fit.contrast <- contrasts.fit(fitTrtMean, contrast.matrix)
+
+## Compute a moderate constrast t-test
+efit.contrast <- eBayes(fit.contrast)
+
+## Plot
+
+for(i in 1:ncol(efit.contrast$p.value)){
+  hist(efit.contrast$p.value[,i],main=colnames(efit.contrast$p.value)[i])
+}
+
+
+## Compute gene list
+
+genes <- geneNames(data)
+topTable(efit.contrast,coef=1,adjust.method="BY",n=10,p.value=1e-5,genelist=genes)
