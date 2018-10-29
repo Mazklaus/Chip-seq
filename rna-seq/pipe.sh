@@ -31,15 +31,15 @@ usage() {
 	echo -e "\t\e[1m./pipe.sh [OPTION(S)] [INDEX FILE] [FASTQ FILE] [ANNOTATION FILE]\e[0m\n"
 	echo -e "\t\e[1m[INDEX FILE]\e[0m\t\t\tThe fasta file that will be used to build the index.\n"
 	echo -e "\t\e[1m[FASTQ FILE]\e[0m\t\t\tThe fastq file containing the reads you want to align.\n"
-	echo -e "\t\e[1m[ANNOTATION FILE]\e[0m\t\tThe gtf file containing the position of genes for your\n\t\t\t\t\treferecence genome(WORK IN PROGRESS not really needed).\n"
+	echo -e "\t\e[1m[ANNOTATION FILE]\e[0m\t\tThe gtf file containing the position of genes for your\n\t\t\t\t\treferecence genome.\n"
 	echo -e "\e[1mOPTION\e[0m\n"
-	echo -e "\t\e[1m-h|--help\e[0m\t\t\tPrint the help.\n"
 	echo -e "\t\e[1m-q|--quality\e[0m\t\t\tGive a html quality summary using fastqc.\n"
 	echo -e "\t\e[1m-d|--strand-specific\e[0m\t\tUse this argument if your RNA-seq experiment is\n\t\t\t\t\tstrand specific.\n"
-	echo -e "\t\e[1m-o|--output [DIRECTORY]\e[0m\t\tThe output folder where you want to place result.\n\t\t\t\t\tIf it does not exist it will be create (be carefull).\n"
+	echo -e "\t\e[1m-o|--output [DIRECTORY]\e[0m\t\tThe output folder where you want to place result.\n\t\t\t\t\t\e[31m/!\ \e[0m If it does not exist it will be create.\n"
 	echo -e "\t\e[1m-p|--paired [.fastq FILE]\e[0m\tUsed this argument with the paired file if you have pair-end\n\t\t\t\t\tdata (without it asume that you are managing single end data).\n"
 	echo -e "\t\e[1m-s|--snps [.fa FILE]\e[0m\t\tGive a file adding snps information to the index.\n"
 	echo -e "\t\e[1m-c/--core [INTEGER]\e[0m\t\tNumber of CPU core used for alignement.\n\t\t\t\t\t\e[31m/!\ \e[0m A high number can improve speed but can also reduce\n\t\t\t\t\toverall computer speed during the computing time.\n"
+	echo -e "\t\e[1m-h|--help\e[0m\t\t\tPrint the help.\n"
 	echo -e "\n#######################################################################"
 
 	exit 1
@@ -129,19 +129,20 @@ fi
 # Production of the index file
 if [ ! -n "$argPaired" ]; then
 	if [ -n "$argSnps" ]; then
-	  hisat2-build -p $argCore --snp ./$argSnps ./$1 ${argOutput}built_index/refer
+	  hisat2-build -p $argCore --snp $argSnps $1 ${argOutput}built_index/refer
 	else
-	  hisat2-build -p $argCore ./$1 ${argOutput}built_index/refer
+	  hisat2-build -p $argCore $1 ${argOutput}built_index/refer
 	fi
 else
 	if [ -n "$argSnps" ]; then
-		hisat2-build -p $argCore --snp ./$argSnps -1 ./$1 -2 $argSnps ${argOutput}built_index/refer
+		hisat2-build -p $argCore --snp $argSnps -1 $1 -2 $argSnps ${argOutput}built_index/refer
 	else
-		hisat2-build -p $argCore -1 ./$1 -2 $argSnps ${argOutput}built_index/refer
+		hisat2-build -p $argCore -1 $1 -2 $argSnps ${argOutput}built_index/refer
 	fi
 fi
+
 # Alignement of the file
-hisat2 -p $argCore -x ${argOutput}built_index/refer -U ./$2 -S ${argOutput}aligmnent_res/aligmnent.sam
+hisat2 -p $argCore -x ${argOutput}built_index/refer -U $2 -S ${argOutput}aligmnent_res/aligmnent.sam
 
 # turn sam file into bam one (binaries) which are much more faster in compute
 samtools view -bS ${argOutput}aligmnent_res/aligmnent.sam > ${argOutput}aligmnent_res/alignment.bam
