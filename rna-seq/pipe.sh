@@ -158,3 +158,7 @@ if [ $argStrandSpecific = 1 ]; then
 else
 	htseq-count -f bam -r pos -s no ${argOutput}aligmnent_res/alignment.bam $3 > ${argOutput}aligmnent_res/samples.counts
 fi
+
+# Count control quality QC
+# in this part the zip file from fastqc will be taken and put in used
+# with the count file from htsq_count
