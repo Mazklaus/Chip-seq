@@ -120,11 +120,12 @@ if [ ! "$argOutput" = "./" ]; then
 	mkdir $argOutput
 	argOutput="${argOutput}/"
 fi
-mkdir ${argOutput}built_index
-mkdir ${argOutput}aligmnent_res
 if [ $argQualityControl = 1 ];then
 	mkdir ${argOutput}quality_control
 fi
+mkdir ${argOutput}built_index
+mkdir ${argOutput}aligmnent_res
+mkdir ${argOutput}QC
 
 # Production of the index file
 if [ ! -n "$argPaired" ]; then
