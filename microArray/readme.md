@@ -5,8 +5,8 @@ It has been design to work on cluster since it is ram costly.
 
 ## Summary
 
-- [Environment installation]()
-- [Script use]()
+- [Environment installation](https://github.com/Mazklaus/Chip-seq/blob/dev/microArray/readme.md#installing-the-environment)
+- [Script use](https://github.com/Mazklaus/Chip-seq/blob/dev/microArray/readme.md#using-the-script)
 
 ## Installing the environment
 
