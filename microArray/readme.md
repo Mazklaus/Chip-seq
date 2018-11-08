@@ -16,14 +16,14 @@ If it is the case just dowload the correct file from the link above and follow e
 
 Once it has been install you just have to run this command line to create the new environment :
 
-"""
+'''
 conda env -n myEnvName -f pathTo/??.yml
-"""
+'''
 
 Once the environment is created you can use :
 
-"""
+'''
 conda activate myEnvName
-"""
+'''
 
 to place yourself into the environment.
