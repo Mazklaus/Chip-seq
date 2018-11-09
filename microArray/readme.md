@@ -44,7 +44,7 @@ For a more complete explanation of how conda work checkout this [link](https://c
 
 ### Configure it
 
-The analysis pipeline need to be configure if it is the first time you run it. The script will install all the R packages that it need to work and that are not directly given by the environment file. Since this part is quite consuming it have been put aside the rest of the pipe but don't worry all is handle by the script the only thing you have to do is to run the following command line take a coffee break. :smile:
+The analysis pipeline need to be configure if it is the first time you run it. The script will install all the R packages that it need to work and that are not directly given by the environment file. Since this part is quite consuming it have been put aside the rest of the pipe but don't worry all is handle by the script the only thing you have to do is to run the following command line take a coffee break. :blinkofaneye:
 
 ```
 
